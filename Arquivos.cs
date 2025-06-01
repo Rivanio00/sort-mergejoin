@@ -10,9 +10,9 @@ class Arquivos
         return line.Split(',');
     }
 
-    public static void WriteTxtLine(String txtPath, String line)
+    public static void WriteTxtLine(String txtPath, String line, bool canAppend = true)
     {
-        using (StreamWriter writer = new StreamWriter(txtPath, append: true))
+        using (StreamWriter writer = new StreamWriter(txtPath, append: canAppend))
         {
             writer.WriteLine(line);
         }

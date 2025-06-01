@@ -27,15 +27,40 @@ class Tabela
         return _pags[index];
     }
 
+    public String[] GetMetadata(String tableName)
+    {
+        Directory.CreateDirectory($"disk/{tableName}");
+        String metaPath = $"disk/{tableName}/meta-{tableName}.txt";
+        String[] lines = File.Exists(metaPath) ? File.ReadAllLines(metaPath) : [""];
+        if (lines.Length == 0 || lines[0] == "")
+        {
+            Arquivos.WriteTxtLine(metaPath, "0", false);
+            return File.ReadAllLines(metaPath);
+        }
+        return lines;
+    }
+
+    public void SetMetadata(String tableName, int qntTuplas = -1) // 0 = qntTuplas
+    {
+        String[] fields = GetMetadata(tableName);
+        if (qntTuplas != -1)
+        {
+            fields[0] = qntTuplas.ToString();
+        }
+        Arquivos.WriteTxtLine($"disk/{tableName}/meta-{tableName}.txt", fields[0], false);
+    }
+
     public void CarregarDados()
     {
         String tableName = _csvPath.Split('.')[0];
-        Directory.CreateDirectory($"disk/{tableName}");
+        int qntTuplas = int.Parse(GetMetadata(tableName)[0]);
         String[] lines = Arquivos.ReadCsvLines(_csvPath);
-        for (int i = 1; i < lines.Length; i++)
+        int i = qntTuplas+1;
+        for (; i < lines.Length; i++) // Pois a primeira linha é a estrutura da tupla
         {
             Arquivos.WriteTxtLine($"disk/{tableName}/pag-{tableName}-{QntPags}.txt", lines[i]);
             if (i % 10 == 0) QntPags += 1;
         }
+        SetMetadata(tableName, i-1);
     }
 }
