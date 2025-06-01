@@ -6,28 +6,27 @@ class Program
 {
     static void Main(string[] args)
     {
-        Tabela vinho = new Tabela("vinho.csv"); // cria estrutura necessária para a tabela
-        Tabela uva = new Tabela("uva.csv");
-        Tabela pais = new Tabela("pais.csv");
+        Table vinho = new Table("vinho.csv"); // cria estrutura necessária para a Table
+        Table uva = new Table("uva.csv");
+        Table pais = new Table("pais.csv");
 
-        vinho.CarregarDados(); // lê os dados do csv e adiciona na estrutura da tabela, caso necessário
+        vinho.CarregarDados(); // lê os dados do csv e adiciona na estrutura da Table, caso necessário
         uva.CarregarDados();
         pais.CarregarDados();
 
-        // IMPLEMENTE O OPERADOR E DEPOIS EXECUTE AQUI
-        // Operador op = new Operador(vinho, uva, "vinho_id", "uva_id");
+        // IMPLEMENTE O OperationERADOR E DEPOIS EXECUTE AQUI
+        // Operationerador operation = new Operationerador(vinho, uva, "vinho_id", "uva_id");
         //// significa: SELECT * FROM Vinho V, Uva U WHERE V.vinho_id = U.uva_id
-        //// IMPORTANTE: isso é só um exemplo, podem ser tabelas/colunas distintas.
-        //// genericamente: Operador(tabela_1, tabela_2, col_tab_1, col_tab_2):
-        //// significa: SELECT * FROM tabela_1, tabela_2 WHERE col_tab_1 = col_tab_2
+        //// IMPORTANTE: isso é só um exemplo, podem ser Tables/colunas distintas.
+        //// genericamente: Operationerador(Table_1, Table_2, col_tab_1, col_tab_2):
+        //// significa: SELECT * FROM Table_1, Table_2 WHERE col_tab_1 = col_tab_2
 
-        op.Executar(); // Realiza a operação desejada
+        operation.Executar(); // Realiza a Operationeração desejada
 
-        Console.WriteLine($"#Pags: {op.NumPagsGeradas()}"); // Retorna a quantidade de páginas geradas pela operação
-        Console.WriteLine($"#IOs: {op.NumIOExecutados()}"); // Retorna a quantidade de IOs geradas pela operação
-        Console.WriteLine($"#Tups: {op.NumTuplasGeradas()}"); // Retorna a quantidade de tuplas geradas pela operação
+        Console.WriteLine($"#Pags: {operation.NumPagsGeradas()}"); // Retorna a quantidade de páginas geradas pela Operationeração
+        Console.WriteLine($"#IOs: {operation.NumIOExecutados()}"); // Retorna a quantidade de IOs geradas pela Operationeração
+        Console.WriteLine($"#Tups: {operation.NumTuplasGeradas()}"); // Retorna a quantidade de tuplas geradas pela Operationeração
 
-        op.SalvarTuplasGeradas("selecao_vinho_ano_colheita_1990.csv"); // Retorna as tuplas geradas pela operação e salva em um csv
+        operation.SalvarTuplasGeradas("selecao_vinho_ano_colheita_1990.csv"); // Retorna as tuplas geradas pela Operationeração e salva em um csv
     }
 }
-
