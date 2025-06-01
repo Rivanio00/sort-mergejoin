@@ -21,6 +21,7 @@ class Program
         genericamente: Operationerador(Tabela_1, Tabela_2, col_tab_1, col_tab_2):
         significa: SELECT * FROM Tabela_1, Tabela_2 WHERE col_tab_1 = col_tab_2 */
 
+        /*
         Operador op = new Operador(vinho, uva, "vinho_id", "uva_id");
         
         op.Executar(); // Realiza a Operationeração desejada
@@ -29,6 +30,6 @@ class Program
         Console.WriteLine($"#IOs: {op.NumIOExecutados()}"); // Retorna a quantidade de IOs geradas pela Operationeração
         Console.WriteLine($"#Tups: {op.NumTuplasGeradas()}"); // Retorna a quantidade de tuplas geradas pela Operationeração
 
-        op.SalvarTuplasGeradas("selecao_vinho_ano_colheita_1990.csv"); // Retorna as tuplas geradas pela Operationeração e salva em um csv
+        op.SalvarTuplasGeradas("selecao_vinho_ano_colheita_1990.csv"); // Retorna as tuplas geradas pela Operationeração e salva em um csv*/
     }
 }
