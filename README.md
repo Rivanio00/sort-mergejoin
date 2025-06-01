@@ -1,4 +1,4 @@
-Class Table
+Class Tabela
     num_columns = número de colunas da tabela
     pages = lista de páginas da tabela
     NumPaginas => pages.Count; -> número de páginas da tabela
