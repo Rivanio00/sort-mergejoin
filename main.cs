@@ -1,7 +1,6 @@
 using System;
-
 // VOCÊ DEVE INCLUIR SEUS NAMESPACES AQUI, CASO NECESSÁRIO!!!
-
+namespace sort_mergejoin;
 class Program
 {
     static void Main(string[] args)
@@ -14,22 +13,22 @@ class Program
         uva.CarregarDados();
         pais.CarregarDados();
 
-        /* IMPLEMENTE O OperationERADOR E DEPOIS EXECUTE AQUI
-        Operationerador operation = new Operationerador(vinho, uva, "vinho_id", "uva_id");
-        significa: SELECT * FROM Vinho V, Uva U WHERE V.vinho_id = U.uva_id
-        IMPORTANTE: isso é só um exemplo, podem ser Tabelas/colunas distintas.
-        genericamente: Operationerador(Tabela_1, Tabela_2, col_tab_1, col_tab_2):
-        significa: SELECT * FROM Tabela_1, Tabela_2 WHERE col_tab_1 = col_tab_2 */
+        // IMPLEMENTE O OPERADOR E DEPOIS EXECUTE AQUI
+        //Operador op = new Operador(vinho, uva, "vinho_id", "uva_id");
 
-        /*
-        Operador op = new Operador(vinho, uva, "vinho_id", "uva_id");
-        
-        op.Executar(); // Realiza a Operationeração desejada
+        uva.SortTable("ano_colheita");//coluna 3
+        //significa: SELECT * FROM Vinho V, Uva U WHERE V.vinho_id = U.uva_id
+        //IMPORTANTE: isso é só um exemplo, podem ser Tabelas/colunas distintas.
 
-        Console.WriteLine($"#Pags: {op.NumPagsGeradas()}"); // Retorna a quantidade de páginas geradas pela Operationeração
-        Console.WriteLine($"#IOs: {op.NumIOExecutados()}"); // Retorna a quantidade de IOs geradas pela Operationeração
-        Console.WriteLine($"#Tups: {op.NumTuplasGeradas()}"); // Retorna a quantidade de tuplas geradas pela Operationeração
+        //genericamente: Operador(Tabela_1, Tabela_2, col_tab_1, col_tab_2):
+        //significa: SELECT * FROM Tabela_1, Tabela_2 WHERE col_tab_1 = col_tab_2
 
-        op.SalvarTuplasGeradas("selecao_vinho_ano_colheita_1990.csv"); // Retorna as tuplas geradas pela Operationeração e salva em um csv*/
+        //op.Executar(); // Realiza a Operação desejada
+
+        //Console.WriteLine($"#Pags: {op.NumPagsGeradas()}"); // Retorna a quantidade de páginas geradas pela Operação
+        //Console.WriteLine($"#IOs: {op.NumIOExecutados()}"); // Retorna a quantidade de IOs geradas pela Operação
+        //Console.WriteLine($"#Tups: {op.NumTuplasGeradas()}"); // Retorna a quantidade de tuplas geradas pela Operação
+
+        //op.SalvarTuplasGeradas("selecao_vinho_ano_colheita_1990.csv"); // Retorna as tuplas geradas pela Operação e salva em um csv*/
     }
 }

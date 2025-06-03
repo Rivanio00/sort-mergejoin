@@ -1,4 +1,6 @@
-class Pagina
+namespace sort_mergejoin;
+
+public class Pagina
 {
     public int qnt_tuplas_ocup { private set; get; }
     private Tupla[] _tuples;
@@ -34,4 +36,17 @@ class Pagina
         qnt_tuplas_ocup++;
         return true;
     }
+    
+    public override string ToString()
+{
+    if (qnt_tuplas_ocup == 0)
+        return "(Página vazia)";
+
+    var sb = new System.Text.StringBuilder();
+    for (int i = 0; i < qnt_tuplas_ocup; i++)
+    {
+        sb.AppendLine(_tuples[i].ToString());
+    }
+    return sb.ToString();
+}
 }

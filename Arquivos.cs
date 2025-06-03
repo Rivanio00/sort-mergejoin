@@ -1,4 +1,5 @@
-class Arquivos
+namespace sort_mergejoin;
+public class Arquivos
 {
     public static String[] ReadCsvLines(String csvPath)
     {
@@ -16,5 +17,22 @@ class Arquivos
         {
             writer.WriteLine(line);
         }
+    }
+
+    public static Pagina ReadTxtPage(string txtPath)
+    {
+        Pagina new_page = new Pagina();
+
+        using (StreamReader reader = new StreamReader(txtPath))
+        {
+            string? line;
+            while ((line = reader.ReadLine()) != null)
+            {
+                Tupla tupla = new Tupla(line);
+                new_page.AddTuple(tupla);
+            }
+        }
+
+        return new_page;
     }
 }
