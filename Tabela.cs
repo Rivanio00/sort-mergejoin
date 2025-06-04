@@ -54,16 +54,68 @@ namespace sort_mergejoin;
             //ler grupos de tamanho 4 e ordenar --- ceil(n/4) ordenações = também é o número de grupos ordenados(chamarei de bloco)
             //pulo de 4
             Console.WriteLine("-"+NomeTabela+"-");
-
+            
             for (int i = 0; i < 4; i++)
             {
                 AddPage(Arquivos.ReadTxtPage($"disk/{NomeTabela}/pag-{NomeTabela}-{i.ToString()}.txt"));
             }
+
+            //lista auxiliar pra juntar as tuplas e ordenar elas aqui
+            List<Tupla> todasAsTuplas = new List<Tupla>();
             for (int i = 0; i < 4; i++)
+            {
+                Pagina pagina = GetPage(i); // você já carregou essas páginas antes
+                for (int j = 0; j < pagina.qnt_tuplas_ocup; j++)
+                {
+                    todasAsTuplas.Add(pagina.GetTuple(j));
+                }
+            }
+            
+            //ordena as paginas
+            if (tipo == "int")
+            {
+            todasAsTuplas.Sort((a, b) =>
+            {
+                int valA = int.Parse(a[index]);
+                int valB = int.Parse(b[index]);
+                return valA.CompareTo(valB);
+            });
+            }
+            else // string
+            {
+                todasAsTuplas.Sort((a, b) =>
+                {
+                    return string.Compare(a[index], b[index], StringComparison.Ordinal);
+                });
+            }
+        
+            _pags.Clear();
+            int contador = 0;
+            Pagina paginaAtual = new Pagina();
+
+            foreach (var tupla in todasAsTuplas)
+            {
+                bool adicionou = paginaAtual.AddTuple(tupla);
+                if (!adicionou) // Página cheia, salva e começa uma nova
+                {
+                    _pags.Add(paginaAtual);
+                    paginaAtual = new Pagina();
+                    paginaAtual.AddTuple(tupla);
+                }
+                contador++;
+            }
+
+            // Não esquecer de adicionar a última página, se tiver sobrado
+            if (paginaAtual.qnt_tuplas_ocup > 0)
+            {
+                _pags.Add(paginaAtual);
+            }
+
+                    for (int i = 0; i < 4; i++)
             {
                 Console.WriteLine(GetPage(i).ToString());
             }
-
+            _pags.Clear();
             //ler ao menos 3 páginas e manter uma livre no buffer como output --- 1 páina por bloco até ter os 3 blocos ordenados e faz isso com o resto dos blocos
             //pulo de 12
 
