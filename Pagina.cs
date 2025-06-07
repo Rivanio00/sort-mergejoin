@@ -11,6 +11,10 @@ public class Pagina
         _tuples = new Tupla[10];
     }
 
+    public int GetNumTuplas()
+    {
+        return qnt_tuplas_ocup;
+    }
 
     public Tupla GetTuple(int index)
     {

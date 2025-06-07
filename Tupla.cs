@@ -1,5 +1,4 @@
-namespace sort_mergejoin
-{
+namespace sort_mergejoin;
     public class Tupla
     {
         public string[] Cols { get; private set; }
@@ -20,4 +19,3 @@ namespace sort_mergejoin
             return string.Join(",", Cols);
         }
     }
-}

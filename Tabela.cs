@@ -33,95 +33,83 @@ namespace sort_mergejoin;
             _pags.Add(page);
         }
 
-        public Tabela SortTable(String coluna)
+    public Tabela SortTable(String coluna)
+    {
+        // Criar nova tabela ordenada
+        Tabela Tabela_Ordenada = new Tabela(NomeTabela + "_ordenada", QntCols);
+        if (!Schemas.Tabelas.ContainsKey(NomeTabela))
+            throw new Exception("Tabela não registrada no schema.");
+
+        var schema = Schemas.Tabelas[NomeTabela];
+        string[] colunas = schema.colunas;
+        string[] tipos = schema.tipos;
+
+        int index = Array.IndexOf(colunas, coluna);
+        if (index == -1)
+            throw new Exception("Coluna não encontrada.");
+
+        string tipo = tipos[index];
+
+        int totalPaginas = QntPags; // <- Garanta que isso representa o total de páginas da tabela
+        int blocos = (int)Math.Ceiling(totalPaginas / 4.0);
+
+        int contadorPagOrdenada = 0; // contador para nomear os arquivos da tabela ordenada
+        
+        string pastaOrdenada = $"disk/{Tabela_Ordenada.NomeTabela}";
+        if (!Directory.Exists(pastaOrdenada))
         {
-
-            //tabela que receberá as páginas orenadas
-            Tabela Tabela_Ordenada = new Tabela(NomeTabela + "_ordenada", QntCols);
-            if (!Schemas.Tabelas.ContainsKey(NomeTabela))
-                throw new Exception("Tabela não registrada no schema.");
-
-            var schema = Schemas.Tabelas[NomeTabela];
-            string[] colunas = schema.colunas;
-            string[] tipos = schema.tipos;
-
-            int index = Array.IndexOf(colunas, coluna);
-            if (index == -1)
-                throw new Exception("Coluna não encontrada.");
-
-            string tipo = tipos[index];
-
-            //ler grupos de tamanho 4 e ordenar --- ceil(n/4) ordenações = também é o número de grupos ordenados(chamarei de bloco)
-            //pulo de 4
-            Console.WriteLine("-"+NomeTabela+"-");
-            
-            for (int i = 0; i < 4; i++)
-            {
-                AddPage(Arquivos.ReadTxtPage($"disk/{NomeTabela}/pag-{NomeTabela}-{i.ToString()}.txt"));
-            }
-
-            //lista auxiliar pra juntar as tuplas e ordenar elas aqui
+            Directory.CreateDirectory(pastaOrdenada);
+        }
+        for (int b = 0; b < blocos; b++)
+        {
+            // 1. Subir até 4 páginas para a memória
             List<Tupla> todasAsTuplas = new List<Tupla>();
             for (int i = 0; i < 4; i++)
             {
-                Pagina pagina = GetPage(i); // você já carregou essas páginas antes
+                int paginaIndex = b * 4 + i;
+                if (paginaIndex >= totalPaginas)
+                    break;
+
+                Pagina pagina = Arquivos.ReadTxtPage($"disk/{NomeTabela}/pag-{NomeTabela}-{paginaIndex}.txt");
                 for (int j = 0; j < pagina.qnt_tuplas_ocup; j++)
                 {
                     todasAsTuplas.Add(pagina.GetTuple(j));
                 }
             }
-            
-            //ordena as paginas
+
+            // 2. Ordenar as tuplas do bloco
             if (tipo == "int")
             {
-            todasAsTuplas.Sort((a, b) =>
-            {
-                int valA = int.Parse(a[index]);
-                int valB = int.Parse(b[index]);
-                return valA.CompareTo(valB);
-            });
+                todasAsTuplas.Sort((a, b) => int.Parse(a[index]).CompareTo(int.Parse(b[index])));
             }
-            else // string
+            else
             {
-                todasAsTuplas.Sort((a, b) =>
-                {
-                    return string.Compare(a[index], b[index], StringComparison.Ordinal);
-                });
+                todasAsTuplas.Sort((a, b) => string.Compare(a[index], b[index], StringComparison.Ordinal));
             }
-        
-            _pags.Clear();
-            int contador = 0;
-            Pagina paginaAtual = new Pagina();
 
+            // 3. Recriar páginas ordenadas e SALVAR no disco
+            Pagina paginaAtual = new Pagina();
             foreach (var tupla in todasAsTuplas)
             {
-                bool adicionou = paginaAtual.AddTuple(tupla);
-                if (!adicionou) // Página cheia, salva e começa uma nova
+                if (!paginaAtual.AddTuple(tupla))
                 {
-                    _pags.Add(paginaAtual);
+                    // Página cheia -> salvar no disco
+                    Arquivos.WriteTxtPage(paginaAtual, $"disk/{Tabela_Ordenada.NomeTabela}/pag-{Tabela_Ordenada.NomeTabela}-{contadorPagOrdenada}.txt");
+                    contadorPagOrdenada++;
                     paginaAtual = new Pagina();
                     paginaAtual.AddTuple(tupla);
                 }
-                contador++;
             }
-
-            // Não esquecer de adicionar a última página, se tiver sobrado
+            // Salva a última página restante
             if (paginaAtual.qnt_tuplas_ocup > 0)
             {
-                _pags.Add(paginaAtual);
+                Arquivos.WriteTxtPage(paginaAtual, $"disk/{Tabela_Ordenada.NomeTabela}/pag-{Tabela_Ordenada.NomeTabela}-{contadorPagOrdenada}.txt");
+                contadorPagOrdenada++;
             }
 
-                    for (int i = 0; i < 4; i++)
-            {
-                Console.WriteLine(GetPage(i).ToString());
-            }
-            _pags.Clear();
-            //ler ao menos 3 páginas e manter uma livre no buffer como output --- 1 páina por bloco até ter os 3 blocos ordenados e faz isso com o resto dos blocos
-            //pulo de 12
-
-            //ler ao menos 3 páginas e manter uma livre no buffer como output --- repetir o processo até alcançar um único bloco ordenado
-            //pulo de 36...
-
+            // Limpa buffer da lista de tuplas
+            todasAsTuplas.Clear();
+        }
             return Tabela_Ordenada;
         }
 
@@ -158,6 +146,7 @@ namespace sort_mergejoin;
         public void CarregarDados()
         {
             int qntTuplas = int.Parse(GetMetadata(NomeTabela)[0]);
+            QntPags = (qntTuplas + 9) / 10;
             String[] lines = Arquivos.ReadCsvLines(_csvPath);
             int i = qntTuplas + 1;
             for (; i < lines.Length; i++) // Pois a primeira linha é a estrutura da tupla

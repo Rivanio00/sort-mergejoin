@@ -1,4 +1,5 @@
 namespace sort_mergejoin;
+
 public class Arquivos
 {
     public static String[] ReadCsvLines(String csvPath)
@@ -34,5 +35,13 @@ public class Arquivos
         }
 
         return new_page;
+    }
+
+    public static void WriteTxtPage(Pagina nova_pagina, string txtPath)
+    { 
+        for (int i = 0; i < nova_pagina.GetNumTuplas(); i++)
+            {
+                Arquivos.WriteTxtLine(txtPath, nova_pagina.GetTuple(i).ToString());
+            }
     }
 }
