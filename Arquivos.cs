@@ -38,10 +38,18 @@ public class Arquivos
     }
 
     public static void WriteTxtPage(Pagina nova_pagina, string txtPath)
-    { 
+    {
+        DeleteFileIfExists(txtPath);
         for (int i = 0; i < nova_pagina.GetNumTuplas(); i++)
-            {
-                Arquivos.WriteTxtLine(txtPath, nova_pagina.GetTuple(i).ToString());
-            }
+        {
+            Arquivos.WriteTxtLine(txtPath, nova_pagina.GetTuple(i).ToString());
+        }
+    }
+    public static void DeleteFileIfExists(string path)
+    {
+        if (File.Exists(path))
+        {
+            File.Delete(path);
+        }
     }
 }

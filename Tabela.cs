@@ -32,6 +32,7 @@ namespace sort_mergejoin;
         {
             _pags.Add(page);
         }
+        public static readonly Pagina PaginaVazia = new Pagina();
 
     public Tabela SortTable(String coluna)
     {
@@ -49,12 +50,11 @@ namespace sort_mergejoin;
             throw new Exception("Coluna não encontrada.");
 
         string tipo = tipos[index];
-
-        int totalPaginas = QntPags; // <- Garanta que isso representa o total de páginas da tabela
+        int totalPaginas = QntPags;
         int blocos = (int)Math.Ceiling(totalPaginas / 4.0);
 
         int contadorPagOrdenada = 0; // contador para nomear os arquivos da tabela ordenada
-        
+
         string pastaOrdenada = $"disk/{Tabela_Ordenada.NomeTabela}";
         if (!Directory.Exists(pastaOrdenada))
         {
@@ -67,10 +67,13 @@ namespace sort_mergejoin;
             for (int i = 0; i < 4; i++)
             {
                 int paginaIndex = b * 4 + i;
-                if (paginaIndex >= totalPaginas)
+                //Console.WriteLine("\n" + paginaIndex.ToString()+ totalPaginas.ToString() + "\n");
+                if (paginaIndex > totalPaginas)
+                {
                     break;
-
+                }
                 Pagina pagina = Arquivos.ReadTxtPage($"disk/{NomeTabela}/pag-{NomeTabela}-{paginaIndex}.txt");
+                //Console.WriteLine("\n" + pagina.ToString() + "\n");
                 for (int j = 0; j < pagina.qnt_tuplas_ocup; j++)
                 {
                     todasAsTuplas.Add(pagina.GetTuple(j));
@@ -92,7 +95,7 @@ namespace sort_mergejoin;
             foreach (var tupla in todasAsTuplas)
             {
                 if (!paginaAtual.AddTuple(tupla))
-                {
+                {   
                     // Página cheia -> salvar no disco
                     Arquivos.WriteTxtPage(paginaAtual, $"disk/{Tabela_Ordenada.NomeTabela}/pag-{Tabela_Ordenada.NomeTabela}-{contadorPagOrdenada}.txt");
                     contadorPagOrdenada++;
@@ -110,9 +113,109 @@ namespace sort_mergejoin;
             // Limpa buffer da lista de tuplas
             todasAsTuplas.Clear();
         }
-            return Tabela_Ordenada;
+        //intercalação
+        //ler ao menos 3 páginas e manter uma livre no buffer como output --- 1 páina por bloco até ter os 3 blocos ordenados e faz isso com o resto dos blocosAdd commentMore actions
+        //pulo de 12
+        //ler ao menos 3 páginas e manter uma livre no buffer como output --- repetir o processo até alcançar um único bloco ordenado
+        //pulo de 36...
+
+         // ====== FASE 2: INTERCALAÇÃO DOS BLOCOS 2 a 2 ======
+    int blocosOrdenados = (int)Math.Ceiling(contadorPagOrdenada / 4.0);
+    int novoIndex = 0;
+
+    string nomeFinal = Tabela_Ordenada.NomeTabela + "_intercalada";
+    Tabela tabelaFinal = new Tabela(nomeFinal, QntCols);
+    string pastaFinal = $"disk/{nomeFinal}";
+    if (!Directory.Exists(pastaFinal))
+        Directory.CreateDirectory(pastaFinal);
+
+    for (int b = 0; b < blocosOrdenados; b += 2)
+    {
+        int startA = b * 4;
+        int endA = Math.Min(startA + 3, contadorPagOrdenada - 1);
+
+        int startB = startA + 4;
+        int endB = Math.Min(startB + 3, contadorPagOrdenada - 1);
+        if (startB >= contadorPagOrdenada)
+        {
+            // Último bloco solitário (sem par pra intercalar), apenas copiar
+            for (int p = startA; p <= endA; p++)
+            {
+                Pagina pag = Arquivos.ReadTxtPage($"disk/{Tabela_Ordenada.NomeTabela}/pag-{Tabela_Ordenada.NomeTabela}-{p}.txt");
+                Arquivos.WriteTxtPage(pag, $"disk/{nomeFinal}/pag-{nomeFinal}-{novoIndex}.txt");
+                novoIndex++;
+            }
+            break;
         }
 
+        int ptrA = 0, ptrB = 0;
+        int pagAIndex = startA, pagBIndex = startB;
+
+        Pagina? pagA = Arquivos.ReadTxtPage($"disk/{Tabela_Ordenada.NomeTabela}/pag-{Tabela_Ordenada.NomeTabela}-{pagAIndex}.txt");
+        Pagina? pagB = Arquivos.ReadTxtPage($"disk/{Tabela_Ordenada.NomeTabela}/pag-{Tabela_Ordenada.NomeTabela}-{pagBIndex}.txt");
+        Pagina pagSaida = new Pagina();
+
+        while (pagA != null || pagB != null)
+        {
+            Tupla? tuplaA = (pagA != null && ptrA < pagA.qnt_tuplas_ocup) ? pagA.GetTuple(ptrA) : null;
+            Tupla? tuplaB = (pagB != null && ptrB < pagB.qnt_tuplas_ocup) ? pagB.GetTuple(ptrB) : null;
+            Tupla? menor = null;
+
+            if (tuplaA != null && tuplaB != null)
+                menor = (Comparar(tuplaA, tuplaB, index, tipo) <= 0) ? tuplaA : tuplaB;
+            else if (tuplaA != null)
+                menor = tuplaA;
+            else if (tuplaB != null)
+                menor = tuplaB;
+            else
+                break;
+
+            if (!pagSaida.AddTuple(menor))
+            {
+                Arquivos.WriteTxtPage(pagSaida, $"disk/{nomeFinal}/pag-{nomeFinal}-{novoIndex}.txt");
+                novoIndex++;
+                pagSaida = new Pagina();
+                pagSaida.AddTuple(menor);
+            }
+
+            if (menor == tuplaA)
+            {
+                ptrA++;
+                if (ptrA >= pagA!.qnt_tuplas_ocup)
+                {
+                    ptrA = 0;
+                    pagAIndex++;
+                    pagA = (pagAIndex <= endA) ? Arquivos.ReadTxtPage($"disk/{Tabela_Ordenada.NomeTabela}/pag-{Tabela_Ordenada.NomeTabela}-{pagAIndex}.txt") : null;
+                }
+            }
+            else if (menor == tuplaB)
+            {
+                ptrB++;
+                if (ptrB >= pagB!.qnt_tuplas_ocup)
+                {
+                    ptrB = 0;
+                    pagBIndex++;
+                    pagB = (pagBIndex <= endB) ? Arquivos.ReadTxtPage($"disk/{Tabela_Ordenada.NomeTabela}/pag-{Tabela_Ordenada.NomeTabela}-{pagBIndex}.txt") : null;
+                }
+            }
+        }
+
+        if (pagSaida.qnt_tuplas_ocup > 0)
+        {
+            Arquivos.WriteTxtPage(pagSaida, $"disk/{nomeFinal}/pag-{nomeFinal}-{novoIndex}.txt");
+            novoIndex++;
+        }
+    }
+
+        return Tabela_Ordenada;
+    }
+        public int Comparar(Tupla a, Tupla b, int index, string tipo)
+        {
+            if (tipo == "int")
+                return int.Parse(a[index]).CompareTo(int.Parse(b[index]));
+            else
+                return string.Compare(a[index], b[index], StringComparison.Ordinal);
+        }
         public Pagina GetPage(int index)
         {
             if (index < 0 || index >= _pags.Count)
@@ -146,13 +249,13 @@ namespace sort_mergejoin;
         public void CarregarDados()
         {
             int qntTuplas = int.Parse(GetMetadata(NomeTabela)[0]);
-            QntPags = (qntTuplas + 9) / 10;
+            QntPags = (qntTuplas + 9) / 10; 
             String[] lines = Arquivos.ReadCsvLines(_csvPath);
             int i = qntTuplas + 1;
-            for (; i < lines.Length; i++) // Pois a primeira linha é a estrutura da tupla
-            {
-                Arquivos.WriteTxtLine($"disk/{NomeTabela}/pag-{NomeTabela}-{QntPags}.txt", lines[i]);
-                if (i % 10 == 0) QntPags += 1;
+        for (; i < lines.Length; i++) // Pois a primeira linha é a estrutura da tupla
+        {
+            Arquivos.WriteTxtLine($"disk/{NomeTabela}/pag-{NomeTabela}-{QntPags}.txt", lines[i]);
+            if (i % 10 == 0) QntPags += 1;
             }
             SetMetadata(NomeTabela, i - 1);
         }
