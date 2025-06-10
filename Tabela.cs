@@ -258,7 +258,8 @@ namespace sort_mergejoin;
         {
             Arquivos.WriteTxtLine($"disk/{NomeTabela}/pag-{NomeTabela}-{QntPags}.txt", lines[i]);
             if (i % 10 == 0) QntPags += 1;
-        }QntPags++;
+        }
+        if ((lines.Length-1) % 10 > 0) { QntPags++;}
 
         SetMetadata(NomeTabela, i - 1);
         }
