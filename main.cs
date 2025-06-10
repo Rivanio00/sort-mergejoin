@@ -16,7 +16,19 @@ class Program
         // IMPLEMENTE O OPERADOR E DEPOIS EXECUTE AQUI
         //Operador op = new Operador(vinho, uva, "vinho_id", "uva_id");
 
-        uva.SortTable("ano_colheita");//coluna 3
+        pais.SortTable("nome");
+        pais.SortTable("sigla");
+        
+        uva.SortTable("ano_colheita");
+        uva.SortTable("nome");
+        uva.SortTable("tipo");
+        uva.SortTable("pais_origem_id");
+        
+        vinho.SortTable("rotulo");
+        vinho.SortTable("ano_producao");
+        vinho.SortTable("uva_id");
+        vinho.SortTable("pais_producao_id");
+
         //significa: SELECT * FROM Vinho V, Uva U WHERE V.vinho_id = U.uva_id
         //IMPORTANTE: isso é só um exemplo, podem ser Tabelas/colunas distintas.
 
