@@ -7,6 +7,7 @@ namespace sort_mergejoin;
         private List<Pagina> _pags;
         public int QntCols { get; private set; }
         public int QntPags = 0;
+        private int qntIos {get; set;}
         private String _csvPath;
 
         private String NomeTabela { get; set; }
@@ -27,14 +28,23 @@ namespace sort_mergejoin;
             _csvPath = NomeTabela + ".txt";
         }
 
-
-        public void AddPage(Pagina page)
+        public void addIO() 
         {
-            _pags.Add(page);
+            qntIos += 1;
         }
+        
+        public String getNomeTabela()
+        {
+            return NomeTabela;
+        }
+        
+        public void AddPage(Pagina page)
+    {
+        _pags.Add(page);
+    }
         public static readonly Pagina PaginaVazia = new Pagina();
 
-    public Tabela SortTable(string coluna)
+    public int SortTable(string coluna)
     {
         // Criar nova tabela ordenada
         Tabela Tabela_Ordenada = new Tabela(NomeTabela + "_ordenada", QntCols);
@@ -69,7 +79,8 @@ namespace sort_mergejoin;
                 if (paginaIndex >= totalPaginas)
                     break;
 
-                Pagina pagina = Arquivos.ReadTxtPage($"disk/{NomeTabela}/pag-{NomeTabela}-{paginaIndex}.txt");
+                Pagina pagina = Arquivos.ReadTxtPage($"disk/{NomeTabela}/pag-{paginaIndex}.txt");
+                addIO();
                 for (int j = 0; j < pagina.qnt_tuplas_ocup; j++)
                     todasAsTuplas.Add(pagina.GetTuple(j));
             }
@@ -84,7 +95,8 @@ namespace sort_mergejoin;
             {
                 if (!paginaAtual.AddTuple(tupla))
                 {
-                    Arquivos.WriteTxtPage(paginaAtual, $"{pastaBase}/pag-{Tabela_Ordenada.NomeTabela}-{contadorPagOrdenada}.txt");
+                    Arquivos.WriteTxtPage(paginaAtual, $"{pastaBase}/pag-{contadorPagOrdenada}.txt");
+                    addIO();
                     contadorPagOrdenada++;
                     paginaAtual = new Pagina();
                     paginaAtual.AddTuple(tupla);
@@ -93,7 +105,8 @@ namespace sort_mergejoin;
 
             if (paginaAtual.qnt_tuplas_ocup > 0)
             {
-                Arquivos.WriteTxtPage(paginaAtual, $"{pastaBase}/pag-{Tabela_Ordenada.NomeTabela}-{contadorPagOrdenada}.txt");
+                Arquivos.WriteTxtPage(paginaAtual, $"{pastaBase}/pag-{contadorPagOrdenada}.txt");
+                addIO();
                 contadorPagOrdenada++;
             }
         }
@@ -123,8 +136,10 @@ namespace sort_mergejoin;
                 {
                     for (int p = startA; p <= endA; p++)
                     {
-                        Pagina pag = Arquivos.ReadTxtPage($"{pastaEntrada}/pag-{nomeBase}-{p}.txt");
-                        Arquivos.WriteTxtPage(pag, $"{pastaSaida}/pag-{nomeSaida}-{novoIndex}.txt");
+                        Pagina pag = Arquivos.ReadTxtPage($"{pastaEntrada}/pag-{p}.txt");
+                        addIO();
+                        Arquivos.WriteTxtPage(pag, $"{pastaSaida}/pag-{novoIndex}.txt");
+                        addIO();
                         novoIndex++;
                     }
                     break;
@@ -133,8 +148,10 @@ namespace sort_mergejoin;
                 int ptrA = 0, ptrB = 0;
                 int pagAIndex = startA, pagBIndex = startB;
 
-                Pagina? pagA = Arquivos.ReadTxtPage($"{pastaEntrada}/pag-{nomeBase}-{pagAIndex}.txt");
-                Pagina? pagB = Arquivos.ReadTxtPage($"{pastaEntrada}/pag-{nomeBase}-{pagBIndex}.txt");
+                Pagina? pagA = Arquivos.ReadTxtPage($"{pastaEntrada}/pag-{pagAIndex}.txt");
+                addIO();
+                Pagina? pagB = Arquivos.ReadTxtPage($"{pastaEntrada}/pag-{pagBIndex}.txt");
+                addIO();
                 Pagina pagSaida = new Pagina();
 
                 while (pagA != null || pagB != null)
@@ -154,7 +171,8 @@ namespace sort_mergejoin;
 
                     if (!pagSaida.AddTuple(menor))
                     {
-                        Arquivos.WriteTxtPage(pagSaida, $"{pastaSaida}/pag-{nomeSaida}-{novoIndex}.txt");
+                        Arquivos.WriteTxtPage(pagSaida, $"{pastaSaida}/pag-{novoIndex}.txt");
+                        addIO();
                         novoIndex++;
                         pagSaida = new Pagina();
                         pagSaida.AddTuple(menor);
@@ -167,7 +185,8 @@ namespace sort_mergejoin;
                         {
                             ptrA = 0;
                             pagAIndex++;
-                            pagA = (pagAIndex <= endA) ? Arquivos.ReadTxtPage($"{pastaEntrada}/pag-{nomeBase}-{pagAIndex}.txt") : null;
+                            pagA = (pagAIndex <= endA) ? Arquivos.ReadTxtPage($"{pastaEntrada}/pag-{pagAIndex}.txt") : null;
+                            addIO();
                         }
                     }
                     else if (menor == tuplaB)
@@ -177,14 +196,16 @@ namespace sort_mergejoin;
                         {
                             ptrB = 0;
                             pagBIndex++;
-                            pagB = (pagBIndex <= endB) ? Arquivos.ReadTxtPage($"{pastaEntrada}/pag-{nomeBase}-{pagBIndex}.txt") : null;
+                            pagB = (pagBIndex <= endB) ? Arquivos.ReadTxtPage($"{pastaEntrada}/pag-{pagBIndex}.txt") : null;
+                            addIO();
                         }
                     }
                 }
 
                 if (pagSaida.qnt_tuplas_ocup > 0)
                 {
-                    Arquivos.WriteTxtPage(pagSaida, $"{pastaSaida}/pag-{nomeSaida}-{novoIndex}.txt");
+                    Arquivos.WriteTxtPage(pagSaida, $"{pastaSaida}/pag-{novoIndex}.txt");
+                    addIO();
                     novoIndex++;
                 }
             }
@@ -198,7 +219,7 @@ namespace sort_mergejoin;
         }
 
         // ====== FASE FINAL: CRIAR A TABELA FINAL COM DADOS ORDENADOS ======
-        Tabela tabelaFinal = new Tabela($"{nomeBase}_final", QntCols);
+        Tabela tabelaFinal = new Tabela($"{NomeTabela}_{coluna}_intercalado_final", QntCols);
         tabelaFinal.NomeTabela = tabelaFinal.NomeTabela;
         tabelaFinal.QntPags = contadorPagOrdenada;
 
@@ -209,7 +230,7 @@ namespace sort_mergejoin;
 
         // Move a pasta da última rodada de intercalação para o nome final
         Directory.Move(pastaEntrada, pastaFinal);
-        return tabelaFinal;
+        return qntIos;
     }
 
 
@@ -258,7 +279,7 @@ namespace sort_mergejoin;
         int i = qntTuplas + 1;
         for (; i < lines.Length; i++) // Pois a primeira linha é a estrutura da tupla
         {
-            Arquivos.WriteTxtLine($"disk/{NomeTabela}/pag-{NomeTabela}-{QntPags}.txt", lines[i]);
+            Arquivos.WriteTxtLine($"disk/{NomeTabela}/pag-{QntPags}.txt", lines[i]);
             if (i % 10 == 0) QntPags += 1;
         }
         if ((lines.Length-1) % 10 > 0) { QntPags++;}

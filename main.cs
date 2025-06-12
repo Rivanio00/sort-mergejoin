@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 // VOCÊ DEVE INCLUIR SEUS NAMESPACES AQUI, CASO NECESSÁRIO!!!
 namespace sort_mergejoin;
 class Program
@@ -14,20 +15,20 @@ class Program
         pais.CarregarDados();
 
         // IMPLEMENTE O OPERADOR E DEPOIS EXECUTE AQUI
-        //Operador op = new Operador(vinho, uva, "vinho_id", "uva_id");
+        Operador op = new Operador(vinho, uva, "ano_producao", "nome");
 
-        pais.SortTable("nome");
+        /*pais.SortTable("nome");
         pais.SortTable("sigla");
-        
+
         uva.SortTable("ano_colheita");
         uva.SortTable("nome");
         uva.SortTable("tipo");
         uva.SortTable("pais_origem_id");
-        
+
         vinho.SortTable("rotulo");
         vinho.SortTable("ano_producao");
         vinho.SortTable("uva_id");
-        vinho.SortTable("pais_producao_id");
+        vinho.SortTable("pais_producao_id");*/
 
         //significa: SELECT * FROM Vinho V, Uva U WHERE V.vinho_id = U.uva_id
         //IMPORTANTE: isso é só um exemplo, podem ser Tabelas/colunas distintas.
@@ -35,10 +36,10 @@ class Program
         //genericamente: Operador(Tabela_1, Tabela_2, col_tab_1, col_tab_2):
         //significa: SELECT * FROM Tabela_1, Tabela_2 WHERE col_tab_1 = col_tab_2
 
-        //op.Executar(); // Realiza a Operação desejada
+        op.Executar(); // Realiza a Operação desejada
 
         //Console.WriteLine($"#Pags: {op.NumPagsGeradas()}"); // Retorna a quantidade de páginas geradas pela Operação
-        //Console.WriteLine($"#IOs: {op.NumIOExecutados()}"); // Retorna a quantidade de IOs geradas pela Operação
+        Console.WriteLine($"#IOs: {op.NumIOExecutados()}"); // Retorna a quantidade de IOs geradas pela Operação
         //Console.WriteLine($"#Tups: {op.NumTuplasGeradas()}"); // Retorna a quantidade de tuplas geradas pela Operação
 
         //op.SalvarTuplasGeradas("selecao_vinho_ano_colheita_1990.csv"); // Retorna as tuplas geradas pela Operação e salva em um csv*/
