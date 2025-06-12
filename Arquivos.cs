@@ -45,6 +45,7 @@ public class Arquivos
             Arquivos.WriteTxtLine(txtPath, nova_pagina.GetTuple(i).ToString());
         }
     }
+    
     public static void DeleteFileIfExists(string path)
     {
         if (File.Exists(path))

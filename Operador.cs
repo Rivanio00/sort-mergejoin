@@ -28,14 +28,14 @@ public class Operador
         ios_sort_tabelaD = 0;
         ios_merge_tabela = 0;
         num_pag_geradas = 0;
-        tabela_mergeada = new Tabela($"{Tabela1}_{Tabela2}_{field1}_{field2}", Tabela1.QntCols+Tabela2.QntCols);
+        tabela_mergeada = new Tabela($"{Tabela1}_{Tabela2}_{field1}_{field2}", Tabela1.QntCols + Tabela2.QntCols);
     }
 
     public void Executar()
     {
         ios_sort_tabelaE = TabelaE.SortTable(_fieldE);
         ios_sort_tabelaD = TabelaD.SortTable(_fieldD);
-        ios_merge_tabela = Merge_Tabelas();
+        Merge_Tabelas();
     }
     public int NumPagsGeradas()
     {
@@ -63,11 +63,12 @@ public class Operador
         ios_merge_tabela += 1;
     }
 
-    public int Merge_Tabelas()
+    public void Merge_Tabelas()
     {
-        Pagina paginaE = Arquivos.ReadTxtPage($"disk/{TabelaE}/{TabelaE}_{_fieldE}_intercalado_final/pag-0");
+
+        Pagina paginaE = Arquivos.ReadTxtPage($"disk/{TabelaE.getNomeTabela()}/{TabelaE.getNomeTabela()}_{_fieldE}_intercalado_final/pag-0.txt");
         addIO();
-        Pagina paginaD = Arquivos.ReadTxtPage($"disk/{TabelaD}/{TabelaD}_{_fieldD}_intercalado_final/pag-0");
+        Pagina paginaD = Arquivos.ReadTxtPage($"disk/{TabelaD.getNomeTabela()}/{TabelaD.getNomeTabela()}_{_fieldD}_intercalado_final/pag-0.txt");
         addIO();
         int indexE = 0;
         int indexD = 0;
@@ -81,43 +82,71 @@ public class Operador
         string[] colunasD = schemaD.colunas;
         int indexColunaD = Array.IndexOf(colunasD, _fieldD);
         tabela_mergeada.QntPags = 1;
+        int pagAtualD = 0;
+        int pagAtualE = 0;
+
+        string pastaBase = $"disk/merge_{TabelaE.getNomeTabela()}_{TabelaD.getNomeTabela()}";
+        if (!Directory.Exists(pastaBase))
+            Directory.CreateDirectory(pastaBase);
 
         while (paginaE != null && paginaD != null)
         {
-            Tupla tupleE = paginaE.GetTuple(indexE % 10);
-            Tupla tupleD = paginaD.GetTuple(indexD % 10);
-            if (tupleE.Cols[indexColunaE] == tupleD.Cols[indexColunaD])
+            Console.WriteLine("indexE= " + indexE.ToString() + " IndexD= " + indexD.ToString());
+
+            if (indexD >= paginaD.GetNumTuplas())
+            {
+                indexD = 0;
+                pagAtualD += 1;
+                paginaD = Arquivos.ReadTxtPage($"disk/{TabelaD.getNomeTabela()}/{TabelaD.getNomeTabela()}_{_fieldD}_intercalado_final/pag-{pagAtualD}.txt");
+                addIO();
+            }
+
+            if (indexE >= paginaE.GetNumTuplas())
+            {
+                indexE = 0;
+                pagAtualE += 1;
+                if (pagAtualE <= (TabelaE.QntPags - 1))
+                {
+                    paginaE = Arquivos.ReadTxtPage($"disk/{TabelaE.getNomeTabela()}/{TabelaE.getNomeTabela()}_{_fieldE}_intercalado_final/pag-{pagAtualE}.txt");
+                    addIO();
+                }
+            }
+
+            Tupla tupleE = paginaE.GetTuple(indexE);
+            Tupla tupleD = paginaD.GetTuple(indexD);
+            if (tupleE.Cols[indexColunaE].Equals(tupleD.Cols[indexColunaD]))
             {
                 // Junta os valores das duas tuplas em um novo array de strings
                 string linhaJoin = string.Join(",", tupleE.Cols.Concat(tupleD.Cols));
 
                 // Cria a nova tupla a partir da linha concatenada
                 Tupla novaTupla = new Tupla(linhaJoin);
+                indexD += 1;
+
 
                 // Adiciona na página de saída
                 if (!paginaSaida.AddTuple(novaTupla))
                 {
-                    String caminhoOutput = $"disk/merge_{TabelaE}_{TabelaD}/pag-{tabela_mergeada.QntPags - 1}";
+                    String caminhoOutput = $"disk/merge_{TabelaE.getNomeTabela()}_{TabelaD.getNomeTabela()}/pag-{tabela_mergeada.QntPags - 1}.txt";
                     Arquivos.WriteTxtPage(paginaSaida, caminhoOutput);
                     addIO();
                     paginaSaida = new Pagina();
-                    paginaSaida.AddTuple(novaTupla);
                     tabela_mergeada.QntPags += 1;
-                }
-                // Ando com a página da direita
-                indexD += 1;
-                if (indexD > (TabelaD.QntPags * 10) - 1)
-                {
-                    int pagAtual = (indexD + 9) / 10;
-                    paginaD = Arquivos.ReadTxtPage($"disk/{TabelaD}/{TabelaD}_{_fieldD}_intercalado_final/pag-{pagAtual}");
-                }
-                if ((indexD % 10) > paginaD.GetNumTuplas())
-                {
-
+                    indexD = 0;
+                    paginaSaida.AddTuple(novaTupla);
                 }
                 //paginaE = Arquivos.ReadTxtPage($"disk/{TabelaE}/{TabelaE}_{_fieldE}_intercalado_final/pag-0");
             }
+            else
+            {
+                indexE += 1;
+            }
+            if (paginaSaida.GetNumTuplas() > 0)
+            {
+                String caminhoOutput = $"disk/merge_{TabelaE.getNomeTabela()}_{TabelaD.getNomeTabela()}/pag-{tabela_mergeada.QntPags - 1}.txt";
+                Arquivos.WriteTxtPage(paginaSaida, caminhoOutput);
+                addIO();
+            }
         }
-        return 1;
     }
 }

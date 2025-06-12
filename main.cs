@@ -15,7 +15,7 @@ class Program
         pais.CarregarDados();
 
         // IMPLEMENTE O OPERADOR E DEPOIS EXECUTE AQUI
-        Operador op = new Operador(vinho, uva, "ano_producao", "nome");
+        Operador op = new Operador(uva,vinho,"pais_origem_id" , "pais_producao_id");
 
         /*pais.SortTable("nome");
         pais.SortTable("sigla");
