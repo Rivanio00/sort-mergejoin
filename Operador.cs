@@ -87,7 +87,7 @@ public class Operador
     int indexColunaE = Array.IndexOf(colunasE, _fieldE);
     int indexColunaD = Array.IndexOf(colunasD, _fieldD);
     string tipoColuna = tiposE[indexColunaE]; // Assumimos que os tipos são compatíveis
-
+    int position_pag = -1;   //salva a primeira pagina que tem o valor de coluna D == E, para subir de volta caso necessario 
     string pastaBase = $"disk/merge_{TabelaE.getNomeTabela()}_{TabelaD.getNomeTabela()}";
     if (!Directory.Exists(pastaBase))
         Directory.CreateDirectory(pastaBase);
@@ -95,7 +95,7 @@ public class Operador
     while (paginaE != null && paginaD != null)
     {
         if (indexD >= paginaD.GetNumTuplas())
-        {
+        {   
             indexD = 0;
             pagAtualD++;
             if (pagAtualD >= TabelaD.QntPags)
@@ -105,15 +105,23 @@ public class Operador
             addIO();
         }
 
-        if (indexE >= paginaE.GetNumTuplas())
-        {
-            indexE = 0;
-            pagAtualE++;
-            if (pagAtualE >= TabelaE.QntPags)
-                break;
+            if (indexE >= paginaE.GetNumTuplas())
+            {
+                indexE = 0;
+                pagAtualE++;
+                if (pagAtualE >= TabelaE.QntPags)
+                    break;
 
-            paginaE = Arquivos.ReadTxtPage($"disk/{TabelaE.getNomeTabela()}/{TabelaE.getNomeTabela()}_{_fieldE}_intercalado_final/pag-{pagAtualE}.txt");
-            addIO();
+                paginaE = Arquivos.ReadTxtPage($"disk/{TabelaE.getNomeTabela()}/{TabelaE.getNomeTabela()}_{_fieldE}_intercalado_final/pag-{pagAtualE}.txt");
+                addIO();
+                indexD = 0;
+                if (position_pag != -1)
+                {
+                    paginaD = Arquivos.ReadTxtPage($"disk/{TabelaD.getNomeTabela()}/{TabelaD.getNomeTabela()}_{_fieldD}_intercalado_final/pag-{position_pag}.txt");
+                    addIO();
+                    pagAtualD = position_pag;
+                }
+                position_pag = -1;
         }
 
         Tupla tuplaE = paginaE.GetTuple(indexE);
@@ -124,31 +132,40 @@ public class Operador
 
         int comparacao = CompararValores(valorE, valorD, tipoColuna);
 
-        if (comparacao == 0)
-        {
-            string linhaJoin = string.Join(",", tuplaE.Cols.Concat(tuplaD.Cols));
-            Tupla novaTupla = new Tupla(linhaJoin);
-
-            if (!paginaSaida.AddTuple(novaTupla))
+            if (comparacao == 0)
             {
-                string caminhoOutput = $"disk/merge_{TabelaE.getNomeTabela()}_{TabelaD.getNomeTabela()}/pag-{tabela_mergeada.QntPags - 1}.txt";
-                Arquivos.WriteTxtPage(paginaSaida, caminhoOutput);
-                addIO();
-                paginaSaida = new Pagina();
-                tabela_mergeada.QntPags++;
-                paginaSaida.AddTuple(novaTupla);
-            }
+                if (position_pag == -1) { position_pag = pagAtualD; }
+                string linhaJoin = string.Join(",", tuplaE.Cols.Concat(tuplaD.Cols));
+                Tupla novaTupla = new Tupla(linhaJoin);
 
-            indexD++;
-        }
-        else if (comparacao < 0)
-        {
-            indexE++;
-        }
-        else
-        {
-            indexD++;
-        }
+                if (!paginaSaida.AddTuple(novaTupla))
+                {
+                    string caminhoOutput = $"disk/merge_{TabelaE.getNomeTabela()}_{TabelaD.getNomeTabela()}/pag-{tabela_mergeada.QntPags - 1}.txt";
+                    Arquivos.WriteTxtPage(paginaSaida, caminhoOutput);
+                    addIO();
+                    paginaSaida = new Pagina();
+                    tabela_mergeada.QntPags++;
+                    paginaSaida.AddTuple(novaTupla);
+                }
+
+                indexD++;
+            }
+            else if (comparacao < 0) // e<d
+            {
+                indexE++;
+                if (position_pag != -1)
+                    {
+                        paginaD = Arquivos.ReadTxtPage($"disk/{TabelaD.getNomeTabela()}/{TabelaD.getNomeTabela()}_{_fieldD}_intercalado_final/pag-{position_pag}.txt");
+                        addIO();
+                        pagAtualD = position_pag;
+                        indexD = 0;
+                        position_pag = -1;
+                    }
+            }
+            else //e>d
+            {
+                indexD++;
+            }
     }
 
     // Salva última página se tiver algo

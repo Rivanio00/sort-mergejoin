@@ -227,7 +227,8 @@ namespace sort_mergejoin;
         // Deleta a pasta final se já existir, para evitar conflito no Move
         if (Directory.Exists(pastaFinal))
             Directory.Delete(pastaFinal, true);
-
+            Thread.Sleep(100); // Aguarda 100ms para garantir liberação do SO
+  
         // Move a pasta da última rodada de intercalação para o nome final
         Directory.Move(pastaEntrada, pastaFinal);
         return qntIos;
