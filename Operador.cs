@@ -48,7 +48,7 @@ public class Operador
     public int NumTuplasGeradas()
     {
         int qntPags = tabela_mergeada.QntPags;
-        Pagina ultimaPagina = Arquivos.ReadTxtPage($"disk/merge_{TabelaE}_{TabelaD}/pag-{qntPags - 1}");
+        Pagina ultimaPagina = Arquivos.ReadTxtPage($"disk/merge_{TabelaE.getNomeTabela()}_{TabelaD.getNomeTabela()}/pag-{qntPags - 1}.txt");
         int qntTuplasUltimaPag = ultimaPagina.GetNumTuplas();
         int qntTuplas = (tabela_mergeada.QntPags - 1) * 10 + qntTuplasUltimaPag;
         return qntTuplas;
