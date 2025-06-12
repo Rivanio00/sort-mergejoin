@@ -5,7 +5,7 @@
         Console.WriteLine($"#IOs: {operation.NumIOExecutados()}"); // Retorna a quantidade de IOs geradas pela Operationeração
         Console.WriteLine($"#Tups: {operation.NumTuplasGeradas()}"); // Retorna a quantidade de tuplas geradas pela Operationeração
         */
-        using sort_mergejoin;
+using sort_mergejoin;
 public class Operador
 {
     private Tabela TabelaE { get; set; }
@@ -20,10 +20,23 @@ public class Operador
 
     public Operador(Tabela Tabela1, Tabela Tabela2, String field1, String field2)
     {
-        TabelaE = Tabela1;
-        _fieldE = field1;
-        TabelaD = Tabela2;
-        _fieldD = field2;
+        // Escolhendo a tabela menor como externa
+        int min = Math.Min(Tabela1.QntPags, Tabela2.QntPags);
+        if (Tabela1.QntPags == min)
+        {
+            TabelaE = Tabela1;
+            _fieldE = field1;
+            TabelaD = Tabela2;
+            _fieldD = field2;
+        }
+        else
+        {
+            TabelaE = Tabela2;
+            _fieldE = field2;
+            TabelaD = Tabela1;
+            _fieldD = field1;
+        }
+
         ios_sort_tabelaE = 0;
         ios_sort_tabelaD = 0;
         ios_merge_tabela = 0;
@@ -39,8 +52,10 @@ public class Operador
     }
     public int NumPagsGeradas()
     {
-        return tabela_mergeada.QntPags;
+        num_pag_geradas = tabela_mergeada.QntPags;
+        return num_pag_geradas;
     }
+
     public int NumIOExecutados()
     {
         return ios_sort_tabelaD + ios_sort_tabelaE + ios_merge_tabela;
@@ -55,7 +70,18 @@ public class Operador
     }
     public void SalvarTuplasGeradas(String csvName)
     {
-        //salvar a tabela final em um arquivo csv
+        Pagina page;
+        Arquivos.DeleteFileIfExists(csvName);
+        Arquivos.WriteTxtLine($"disk/{csvName}",$"{TabelaE.getColunas()},{TabelaD.getColunas()}");
+        for (int i = 0; i < num_pag_geradas; i++)
+        {
+            String pagePath = $"disk/merge_{TabelaE.getNomeTabela()}_{TabelaD.getNomeTabela()}/pag-{i}.txt";
+            page = Arquivos.ReadTxtPage(pagePath);
+            for (int j = 0; j < page.GetNumTuplas(); j++)
+            {
+                Arquivos.WriteTxtLine($"disk/{csvName}", page.GetTuple(j).ToString());
+            }
+        }
     }
 
     public void addIO()

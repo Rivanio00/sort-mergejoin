@@ -37,7 +37,13 @@ namespace sort_mergejoin;
         {
             return NomeTabela;
         }
-        
+
+        public String getColunas()
+        {
+            var schema = Schemas.Tabelas[NomeTabela];
+            return String.Join(",", schema.colunas);
+        }
+
         public void AddPage(Pagina page)
     {
         _pags.Add(page);
