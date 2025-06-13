@@ -15,69 +15,28 @@ class Program
     static void Main(string[] args)
     {
         cleanDisk();
-        Tabela vinho = new Tabela("vinho.csv"); // cria estrutura necessária para a Tabela
+        Tabela vinho = new Tabela("vinho.csv"); // cria estrutura necessária para a tabela
         Tabela uva = new Tabela("uva.csv");
         Tabela pais = new Tabela("pais.csv");
 
-        vinho.CarregarDados(); // lê os dados do csv e adiciona na estrutura da Tabela, caso necessário
+        vinho.CarregarDados(); // lê os dados do csv e adiciona na estrutura da tabela, caso necessário
         uva.CarregarDados();
         pais.CarregarDados();
 
-        // BATERIA DE TESTES - APENAS COMPARAÇÕES QUE FAZEM SENTIDO
-        Console.WriteLine("=== BATERIA DE TESTES - COMPARAÇÕES VÁLIDAS ===\n");
+        // IMPLEMENTE O OPERADOR E DEPOIS EXECUTE AQUI
+        Operador op = new Operador(vinho, uva, "vinho_id", "uva_id");
+        //// significa: SELECT * FROM Vinho V, Uva U WHERE V.vinho_id = U.uva_id
+        //// IMPORTANTE: isso é só um exemplo, podem ser tabelas/colunas distintas.
+        //// genericamente: Operador(tabela_1, tabela_2, col_tab_1, col_tab_2):
+        //// significa: SELECT * FROM tabela_1, tabela_2 WHERE col_tab_1 = col_tab_2
 
-        Operador op;
-        int contadorTestes = 1;
+        op.Executar(); // Realiza a operação desejada
 
-        // =========================================================================
-        // TESTE 1: VINHO x UVA - Chave estrangeira válida
-        // vinho.uva_id = uva.uva_id (JOIN natural por chave estrangeira)
-        // =========================================================================
-        Console.WriteLine("--- TESTE 1: JOIN Natural VINHO x UVA ---");
-        op = new Operador(vinho, uva, "uva_id", "uva_id");
-        Console.WriteLine($"Teste {contadorTestes++}: vinho.uva_id = uva.uva_id (Chave estrangeira)");
-        op.Executar();
-        Console.WriteLine($"#Pags: {op.NumPagsGeradas()} | #IOs: {op.NumIOExecutados()} | #Tups: {op.NumTuplasGeradas()}");
-        op.SalvarTuplasGeradas($"join_vinho_uva_chave_estrangeira.csv");
+        Console.WriteLine($"#Pags: {op.NumPagsGeradas()}"); // Retorna a quantidade de páginas geradas pela operação
+        Console.WriteLine($"#IOs: {op.NumIOExecutados()}"); // Retorna a quantidade de IOs geradas pela operação
+        Console.WriteLine($"#Tups: {op.NumTuplasGeradas()}"); // Retorna a quantidade de tuplas geradas pela operação
 
-        // =========================================================================
-        // TESTE 2: VINHO x PAIS - Chave estrangeira válida  
-        // vinho.pais_producao_id = pais.pais_id (JOIN natural por chave estrangeira)
-        // =========================================================================
-        Console.WriteLine("\n--- TESTE 2: JOIN Natural VINHO x PAIS ---");
-        op = new Operador(vinho, pais, "pais_producao_id", "pais_id");
-        Console.WriteLine($"Teste {contadorTestes++}: vinho.pais_producao_id = pais.pais_id (Chave estrangeira)");
-        op.Executar();
-        Console.WriteLine($"#Pags: {op.NumPagsGeradas()} | #IOs: {op.NumIOExecutados()} | #Tups: {op.NumTuplasGeradas()}");
-        op.SalvarTuplasGeradas($"join_vinho_pais_chave_estrangeira.csv");
-
-        // =========================================================================
-        // TESTE 3: UVA x PAIS - Chave estrangeira válida
-        // uva.pais_origem_id = pais.pais_id (JOIN natural por chave estrangeira)
-        // =========================================================================
-        Console.WriteLine("\n--- TESTE 3: JOIN Natural UVA x PAIS ---");
-        op = new Operador(uva, pais, "pais_origem_id", "pais_id");
-        Console.WriteLine($"Teste {contadorTestes++}: uva.pais_origem_id = pais.pais_id (Chave estrangeira)");
-        op.Executar();
-        Console.WriteLine($"#Pags: {op.NumPagsGeradas()} | #IOs: {op.NumIOExecutados()} | #Tups: {op.NumTuplasGeradas()}");
-        op.SalvarTuplasGeradas($"join_uva_pais_chave_estrangeira.csv");
-
-        // =========================================================================
-        // TESTE 4: Comparação por ano (mesmo tipo de dado - inteiro)
-        // vinho.ano_producao = uva.ano_colheita (Comparação temporal válida)
-        // =========================================================================
-        Console.WriteLine("\n--- TESTE 4: JOIN por Ano (Comparação Temporal) ---");
-        op = new Operador(vinho, uva, "ano_producao", "ano_colheita");
-        Console.WriteLine($"Teste {contadorTestes++}: vinho.ano_producao = uva.ano_colheita (Mesmo tipo: ano)");
-        op.Executar();
-        Console.WriteLine($"#Pags: {op.NumPagsGeradas()} | #IOs: {op.NumIOExecutados()} | #Tups: {op.NumTuplasGeradas()}");
-        op.SalvarTuplasGeradas($"join_vinho_uva_por_ano.csv");
-
-        Console.WriteLine($"\n=== BATERIA DE TESTES OTIMIZADA CONCLUÍDA ===");
-        Console.WriteLine($"Total de testes executados: {contadorTestes - 1}");
-        Console.WriteLine("Apenas comparações logicamente válidas foram mantidas:");
-        Console.WriteLine("- 3 JOINs por chave estrangeira (relacionamentos naturais)");
-        Console.WriteLine("- 1 JOIN por comparação de tipo compatível (anos)");
+        op.SalvarTuplasGeradas("selecao_vinho_ano_colheita_1990.csv"); // Retorna as tuplas geradas pela operação e salva em um csv
 
     }
 }
